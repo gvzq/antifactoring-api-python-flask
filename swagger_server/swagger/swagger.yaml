@@ -1,0 +1,137 @@
+openapi: 3.1.0
+info:
+  title: Antifactoring App
+  version: 0.1.0
+servers:
+- url: /
+security:
+- ApiKeyAuth: []
+paths:
+  /api/invoice:
+    post:
+      tags:
+      - Invoices
+      summary: Get the details of an invoice by using OCR and AI.
+      description: "Retrieve details of an invoice by sending a multipart form request\
+        \ of a pdf document, jpeg image, png image, bmp image, webp image, or text\
+        \ file."
+      operationId: scan_invoice
+      parameters:
+      - name: api_key
+        in: query
+        description: API key of the user
+        required: false
+        style: form
+        explode: true
+        schema:
+          description: API key of the user
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/api_invoice_body'
+        required: true
+      responses:
+        "200":
+          description: Invoice details retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceSchema'
+        "400":
+          description: Bad Request
+        "404":
+          description: User or token not found.
+        "500":
+          description: Internal Server Error
+      x-openapi-router-controller: swagger_server.controllers.invoices_controller
+components:
+  schemas:
+    InvoiceSchema:
+      required:
+      - balance_due
+      - bill_to_address
+      - bill_to_name
+      - company_address
+      - company_name
+      - date
+      - due_date
+      - invoice_number
+      - items
+      - payment_terms
+      - subtotal
+      - tax
+      - total
+      properties:
+        invoice_number: {}
+        company_name: {}
+        company_address:
+          $ref: '#/components/schemas/InvoiceSchema_company_address'
+        date: {}
+        payment_terms: {}
+        bill_to_name: {}
+        bill_to_address:
+          $ref: '#/components/schemas/InvoiceSchema_company_address'
+        due_date: {}
+        balance_due: {}
+        items:
+          items:
+            required:
+            - amount
+            - description
+            - quantity
+            - rate
+            properties:
+              description: {}
+              quantity: {}
+              rate: {}
+              amount: {}
+            additionalProperties: false
+        subtotal: {}
+        tax: {}
+        total: {}
+      additionalProperties: {}
+      example:
+        date: ""
+        due_date: ""
+        tax: ""
+        payment_terms: ""
+        company_address:
+          city: ""
+          street: ""
+          state: ""
+          zip_code: ""
+        bill_to_address: null
+        total: ""
+        bill_to_name: ""
+        subtotal: ""
+        company_name: ""
+        balance_due: ""
+        invoice_number: ""
+        items: ""
+    api_invoice_body:
+      required:
+      - file
+      properties:
+        file:
+          format: binary
+      additionalProperties: {}
+    InvoiceSchema_company_address:
+      properties:
+        street: {}
+        city: {}
+        state: {}
+        zip_code: {}
+      additionalProperties: false
+      example:
+        city: ""
+        street: ""
+        state: ""
+        zip_code: ""
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      name: api_key
+      in: query
+      x-apikeyInfoFunc: swagger_server.controllers.authorization_controller.check_ApiKeyAuth
+
